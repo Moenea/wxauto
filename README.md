@@ -1,4 +1,4 @@
-# wxauto  (适用PC微信3.9.8.15版本）
+# wxauto  (适用PC微信3.9.8.15版本）123
 
 ### 2023-11-20重写wxauto，欢迎指出bug，欢迎pull requests
 
