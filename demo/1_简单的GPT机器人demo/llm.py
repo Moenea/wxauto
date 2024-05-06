@@ -13,6 +13,7 @@ class GPT:
             os.environ['HTTP_PROXY'] = proxy
             os.environ['HTTPS_PROXY'] = proxy
         self.client = openai.OpenAI(api_key=self.api_key, base_url=self.base_url)
+        # self.client = openai.OpenAI(api_key=self.api_key)
         self.initialize(prompt)
 
     def initialize(self, prompt=None):
