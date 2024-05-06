@@ -8,7 +8,8 @@ for i in range(3):
     wx.SendMsg(f'wxauto测试{i+1}', who)
     
 # 获取当前聊天页面（文件传输助手）消息，并自动保存聊天图片
-msgs = wx.GetAllMessage(savepic=True)
+# msgs = wx.GetAllMessage(savepic=True)
+msgs = wx.GetAllMessage(savepic=False)
 for msg in msgs:
     print(f"{msg[0]}: {msg[1]}")
 
