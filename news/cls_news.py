@@ -122,6 +122,9 @@ for i in range(df.shape[0]):
 #         if len(time_series) != 0:
 #             df = pd.concat([df, df_stored], axis=0, ignore_index=True)
 
+#         # 再次检查Text列是否有重复，有则删去，保留原始的哪一个row（那是“分钟前”计算的，更加准确）
+#         df.drop_duplicates(subset='Text', keep='last', inplace=True)
+
 #         # 写入CSV文件
 #         df.to_csv(file_destination, index=False, encoding='utf-8')
 

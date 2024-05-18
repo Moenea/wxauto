@@ -15,8 +15,9 @@ asyncio.run(main())
 # file_destination = './news_data/weibo_aizaibingchuan.csv'
 # # 读取存储的.csv文件
 # df = pd.read_csv(file_destination, encoding='utf-8')
+# df['Time'] = pd.to_datetime(df['Time'], format='%Y-%m-%d %H:%M:%S')
 # # 每个元素表示一行
 # for i in range(df.shape[0]):
-#     text = df.iloc[i,1]+"\n\n"+df.iloc[i,0]
+#     text = str(df.iloc[i,1])+"\n\n"+df.iloc[i,0]
 #     print(text)
 #     print('\n')

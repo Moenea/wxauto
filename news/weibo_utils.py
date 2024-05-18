@@ -112,19 +112,27 @@ async def fetch_weibo_content(url, file_destination):
             # 读取存储的.csv文件
             df_stored = pd.read_csv(file_destination, encoding='utf-8')
             time_series = df_stored['Time'].values.tolist()
+            df_stored['Time'] = pd.to_datetime(df_stored['Time'], format='%Y-%m-%d %H:%M:%S')
         except:
             time_series = []
 
         # 进行drop操作
+        drop_index = []
         for i,e in enumerate(df['Time']):
             if str(e) in time_series:
-                df.drop(i, inplace=True)
+                drop_index.append(i)
+            if str(df.iloc[i,0]) == '' or str(df.iloc[i,0]) == '\n':
+                drop_index.append(i)
+
+        df.drop(drop_index, inplace=True)
 
         # 新数据与原数据合并
         if len(time_series) != 0:
             df = pd.concat([df, df_stored], axis=0, ignore_index=True)
 
-
+        # 再次检查Text列是否有重复，有则删去，保留原始的哪一个row（那是“分钟前”计算的，更加准确）
+        df.drop_duplicates(subset='Text', keep='last', inplace=True)
+        
         # 时间降序排列
         df.sort_values(by='Time', ascending=False, inplace=True)
 
