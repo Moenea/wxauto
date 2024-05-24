@@ -71,7 +71,7 @@ class WeChat(WeChatBase):
         wxpath = GetPathByHwnd(self.HWND)
         wxversion = GetVersionByPath(wxpath)
         if wxversion != self.VERSION:
-            Warnings.lightred(self._lang('版本不一致', 'WARNING').format(wxversion, self.VERSION), stacklevel=2)
+            # Warnings.lightred(self._lang('版本不一致', 'WARNING').format(wxversion, self.VERSION), stacklevel=2)
             return False
     
     def _show(self):

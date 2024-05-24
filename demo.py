@@ -3,7 +3,8 @@ from wxauto import WeChat
 wx = WeChat()
 
 # 发送消息
-who = '文件传输助手'
+# who = '文件传输助手'
+who = 'xxxxIe'
 for i in range(3):
     wx.SendMsg(f'wxauto测试{i+1}', who)
     

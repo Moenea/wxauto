@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import pandas as pd
 
-
 # 定义一个函数将字符串时间转换为 datetime 对象，适用于微博数据，因为时间是 %m-%d %H:%M 格式
 def convert_time(time_str):
     # 当前时间
@@ -14,6 +13,28 @@ def convert_time(time_str):
         yesterday = now-timedelta(days=1)
         time_str = time_str.replace("昨天", str(yesterday.month)+'-'+str(yesterday.day))
 
+
+    elif "分钟前" in time_str:
+        number = int(time_str.split("分钟前")[0])
+        time_obj = now-timedelta(minutes=number)
+
+        time_obj = datetime.strftime(time_obj, "%Y-%m-%d %H:%M:S")
+        return datetime.strptime(time_obj, "%Y-%m-%d %H:%M:S")
+
+    elif "小时前" in time_str:
+        number = int(time_str.split("小时前")[0])
+        time_obj = now-timedelta(hours=number)
+
+        time_obj = datetime.strftime(time_obj, "%Y-%m-%d %H:%M:S")
+        return datetime.strptime(time_obj, "%Y-%m-%d %H:%M:S")
+
+    try:
+        # 尝试按照指定格式解析时间字符串
+        datetime_obj = datetime.strptime(time_str, "%Y-%m-%d %H:%M")
+        return datetime.strptime(time_str, "%Y-%m-%d %H:%M")
+    except ValueError:
+        pass
+    
     # 获取当前年份
     current_year = now.year
 
@@ -22,9 +43,9 @@ def convert_time(time_str):
 
     # 定义日期格式
     date_format = "%Y-%m-%d %H:%M"
-
     time_obj = datetime.strptime(new_date_string, date_format)
     return time_obj
+
 
 async def fetch_weibo_content(url, file_destination):
     async with async_playwright() as p:
@@ -86,9 +107,9 @@ async def fetch_weibo_content(url, file_destination):
             text = soup.get_text()
             content_text_list.append(text)
 
-            print(time)
-            print(text)
-            print('\n')
+            # print(time)
+            # print(text)
+            # print('\n')
 
             # 返回上一个界面
             await page.go_back()

@@ -111,10 +111,11 @@ async def fetch_weibo_content(url, file_destination):
 
                 time_list.append(datetime)
                 content_text_list.append(text)
-                print(datetime)
-                print()
-                print(text)
-                print('\n')
+
+                # print(datetime)
+                # print()
+                # print(text)
+                # print('\n')
 
         # 要写入的数据（存储为JSON格式）
         data = {
