@@ -3,13 +3,13 @@ import os
 import pandas as pd
 import json
 
-def update_news(news_name):
+def update_news(news_name, resouce_name):
     # 指定文件路径
     csv_file_path = f'./news_data/{news_name}.csv'
     py_file_path = f'./news/{news_name}_news.py'
 
     # 判断消息来源，比如'./news/cls_news.py'就是 【cls】
-    resouce = '【' + py_file_path.split('/')[2].split('_')[0] + '_' + py_file_path.split('/')[2].split('_')[1] + '】'
+    resouce = '【' + resouce_name + '】'
 
     # 判断文件是否存在，若存在直接看rows；若不存在先初始化csv然后看rows
     if os.path.exists(csv_file_path):
@@ -25,7 +25,7 @@ def update_news(news_name):
     text_df = pd.read_csv(csv_file_path, encoding='utf-8')
     item_num_after = text_df.shape[0]
 
-    if 'cls' in resouce:
+    if 'cls' in csv_file_path:
         # cls 需要将 JSON 字符串转换回列表
         text_df['Text'] = text_df['Text'].apply(json.loads)
 
@@ -52,7 +52,7 @@ def update_news(news_name):
 # news_name = 'cls_jiahong'
 news_name = 'weibo_tangshuzhuren'
 # news_name = 'xueqiu_fudanchengzicheng'
-text_list = update_news(news_name)
+text_list = update_news(news_name, 'TESTING PHASE')
 for i in text_list:
     print(i)
     print('\n\n')

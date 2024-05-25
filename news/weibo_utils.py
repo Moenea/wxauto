@@ -105,6 +105,8 @@ async def fetch_weibo_content(url, file_destination):
 
             # 获取替换后的文本
             text = soup.get_text()
+            if "...全文" in text: # 在已经存储过本文本的时候，有时候会有莫名bug，点不开全文，并且文本中包含【...全文】的字样
+                continue
             content_text_list.append(text)
 
             # print(time)
