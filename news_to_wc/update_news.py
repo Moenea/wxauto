@@ -49,10 +49,11 @@ def update_news(news_name, resouce_name):
 
     return text_list
 
-# news_name = 'cls_jiahong'
-news_name = 'weibo_tangshuzhuren'
-# news_name = 'xueqiu_fudanchengzicheng'
-text_list = update_news(news_name, 'TESTING PHASE')
-for i in text_list:
-    print(i)
-    print('\n\n')
+if __name__ == '__main__':
+    # news_name = 'cls_jiahong'
+    news_name = 'weibo_tangshuzhuren'
+    # news_name = 'xueqiu_fudanchengzicheng'
+    text_list = update_news(news_name, 'TESTING PHASE')
+    for i in text_list:
+        print(i)
+        print('\n\n')
