@@ -3,6 +3,8 @@ from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import pandas as pd
+import aiohttp
+import os
 
 # 定义一个函数将字符串时间转换为 datetime 对象，适用于微博数据，因为时间是 %m-%d %H:%M 格式
 def convert_time(time_str):
@@ -47,6 +49,35 @@ def convert_time(time_str):
     return time_obj
 
 
+async def download_image(url, file_path):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+        'Referer': 'https://weibo.com/',  # 添加 Referer 头
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1'
+    }
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, headers=headers) as response:
+            if response.status != 200:
+                print(f"Failed to download image. Status code: {response.status}")
+            
+            # 将图片写入临时文件
+            with open(file_path, 'wb') as file:
+                file.write(await response.read())
+            
+            # 检查文件大小
+            file_size = os.path.getsize(file_path)
+            # if file_size < 10 * 1024:  # 10KB = 10 * 1024 bytes 避免下载表情作为图片
+            #     os.remove(file_path)
+            #     print(f"Image size is less than 10KB, not saving the file: {file_path}")
+            # else:
+            #     print(f"Image successfully downloaded: {file_path}")
+
+
 async def fetch_weibo_content(url, file_destination):
     async with async_playwright() as p:
         # 创建一个浏览器实例
@@ -75,26 +106,40 @@ async def fetch_weibo_content(url, file_destination):
 
         time_list = []
         content_text_list = []
+        pic_list = []
         for index, element in enumerate(elements):
             # 获取元素的文本
             element_text = await element.text_content()
 
-            # 点击div元素，进入对应div页面
-            await page.click(f'div.weibo-og:has-text("{element_text}")')
+            # 选择包含特定文本的 div.weibo-text 元素
+            selector = f'div.weibo-text:has-text("{element_text}")'
+            
+            # 获取该元素的边界框信息
+            element = await page.query_selector(selector)
+            bounding_box = await element.bounding_box()
+            
+            # 计算左侧位置，一般链接不会放置在左侧
+            left_center_position = {'x': bounding_box['height'] / 5, 'y': bounding_box['height'] / 5}
+
+            # 点击左侧位置
+            await page.click(selector, position=left_center_position)
 
             # 等待新页面加载
             await asyncio.sleep(0.25)
 
-            # Post Publish time
+            # 获取该条post的时间
             span_time = await page.query_selector_all('span.time')
             time = await span_time[0].inner_text()
             time_list.append(time)
 
+            # 找weibo-og元素，里面含有text和图片
+            div_weibo_og = await page.query_selector('div.weibo-og')
+
             # 找到新页面中class为“weibo-text”的div元素并打印他们的text
-            text_element = await page.query_selector_all('div.weibo-text')
+            text_element = await div_weibo_og.query_selector('div.weibo-text')
 
             # 获取元素的 HTML
-            element_html = await text_element[0].inner_html()
+            element_html = await text_element.inner_html()
 
             # 使用 BeautifulSoup 解析 HTML
             soup = BeautifulSoup(element_html, 'html.parser')
@@ -108,6 +153,20 @@ async def fetch_weibo_content(url, file_destination):
             if "...全文" in text: # 在已经存储过本文本的时候，有时候会有莫名bug，点不开全文，并且文本中包含【...全文】的字样
                 continue
             content_text_list.append(text)
+            
+            try:
+                # 尝试寻找 div_weibo_og 中的 img 元素
+                img_elements = await div_weibo_og.query_selector('img')
+                img_src = await img_elements.get_attribute('src')
+                large_img_src = img_src.replace('orj360','large')
+
+                pic_id = convert_time(time).strftime("%Y%m%d%H%M%S")
+                file_path = './news_pic/' + file_destination.split('/')[-1].split('.')[0] + '_' + pic_id + '_image.jpg'
+                await download_image(large_img_src, file_path)
+            except:
+                file_path = 'No_Pic'
+
+            pic_list.append(file_path)
 
             # print(time)
             # print(text)
@@ -122,7 +181,8 @@ async def fetch_weibo_content(url, file_destination):
         # 要写入的数据（存储为JSON格式）
         data = {
             'Text': content_text_list,
-            'Time': time_list
+            'Time': time_list,
+            'Pic': pic_list
         }
 
         df = pd.DataFrame(data)

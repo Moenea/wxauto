@@ -41,19 +41,24 @@ def update_news(news_name, resouce_name):
     else:
         text_df['Time'] = pd.to_datetime(text_df['Time'], format='%Y-%m-%d %H:%M:%S')
         text_list = []
+        pic_list = []
         if item_num_before != item_num_after:
             for i in range(item_num_after-item_num_before-1,-1,-1):
                 text = resouce + '\n' + str(text_df.iloc[i,1])+"\n\n"+text_df.iloc[i,0]
                 # print(text)
                 text_list.append(text)
 
-    return text_list
+                # 读取照片路径
+                pic_list.append(text_df.iloc[i,2])
+
+    return text_list, pic_list
 
 if __name__ == '__main__':
     # news_name = 'cls_jiahong'
-    news_name = 'weibo_tangshuzhuren'
-    # news_name = 'xueqiu_fudanchengzicheng'
-    text_list = update_news(news_name, 'TESTING PHASE')
-    for i in text_list:
-        print(i)
+    # news_name = 'weibo_tangshuzhuren'
+    news_name = 'xueqiu_fudanchengzicheng'
+    text_list, pic_list = update_news(news_name, 'TESTING PHASE')
+    for i,e in enumerate(text_list):
+        print(e)
+        print(pic_list[i])
         print('\n\n')

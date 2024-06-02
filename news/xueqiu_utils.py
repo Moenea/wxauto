@@ -3,6 +3,8 @@ from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import pandas as pd
+from urllib.parse import urljoin
+import os
 
 
 # 定义一个函数将字符串时间转换为 datetime 对象，适用于微博数据，因为时间是 %m-%d %H:%M 格式
@@ -87,6 +89,7 @@ async def fetch_weibo_content(url, file_destination):
         item_main_divs = await page.query_selector_all('div.timeline__item__main')
         time_list = []
         content_text_list = []
+        pic_list = []
         # Get Content from each content div
         for item_main_div in item_main_divs:
             # datetime
@@ -112,6 +115,47 @@ async def fetch_weibo_content(url, file_destination):
                 time_list.append(datetime)
                 content_text_list.append(text)
 
+                file_path = 'No_Pic'
+                # 获取 div 中的 img 元素
+                img_element = await contentElement.query_selector('img')
+                if not img_element:
+                    # print("No image found in the content div.")
+                    pass
+                else:
+                    # 获取图片的 src 属性
+                    img_url = await img_element.get_attribute('src')
+                    if not img_url:
+                        # print("Image src attribute not found.")
+                        pass
+                    else:
+                        # 处理相对路径的情况
+                        img_url = urljoin(url, img_url)
+                        # print(f"Image URL: {img_url}")
+                        pass
+
+                        # 下载图片
+                        response = await page.request.get(img_url)
+                        if response.status != 200:
+                            # print(f"Failed to download image. Status code: {response.status}")
+                            pass
+                        else:
+                            pic_id = convert_time(datetime)
+                            pic_id = pic_id.strftime("%Y%m%d%H%M%S")
+                            file_path = './news_pic/'+ url.split('/')[-1] + '_' + pic_id +'_image.jpg'
+                            with open(file_path, 'wb') as file:
+                                file.write(await response.body())
+                            
+                            # # 检查文件大小
+                            # file_size = os.path.getsize(file_path)
+                            # if file_size < 5 * 1024:  # 5KB = 5 * 1024 bytes
+                            #     os.remove(file_path)
+                            #     print(f"Image size is less than 5KB, not saving the file: {file_path}")
+                            #     file_path = 'No_Pic'
+                            # else:
+                            #     print(f"Image successfully downloaded: {file_path}")
+
+                pic_list.append(file_path)
+
                 # print(datetime)
                 # print()
                 # print(text)
@@ -120,7 +164,8 @@ async def fetch_weibo_content(url, file_destination):
         # 要写入的数据（存储为JSON格式）
         data = {
             'Text': content_text_list,
-            'Time': time_list
+            'Time': time_list,
+            'Pic': pic_list
         }
 
         df = pd.DataFrame(data)

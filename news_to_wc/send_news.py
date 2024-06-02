@@ -10,9 +10,11 @@ wx = WeChat()
 
 # 发送消息
 # who = '文件传输助手'
-who_list = ['xxxxIe', 'Yango']
+# who_list = ['xxxxIe', 'Yango']
+who_list = ['xxxxIe']
 
 news_name_list = ['cls_jiahong', 'weibo_aizaibingchuan', 'weibo_tangshuzhuren', 'weibo_xianglong18duan', 'xueqiu_fudanchengzicheng', 'xueqiu_Nzhouer'] # 删去了 雪球-轮回666
+news_name_list = ['weibo_xianglong18duan', 'xueqiu_fudanchengzicheng']
 resouce_name = {
     'cls_jiahong': '财联社-加红',
     'weibo_aizaibingchuan': '微博-爱在冰川',
@@ -24,10 +26,12 @@ resouce_name = {
 }
 
 def fetch_and_send_news(news_name):
-    text_list = update_news(news_name, resouce_name[news_name])
+    text_list, pic_list = update_news(news_name, resouce_name[news_name])
     for who in who_list:
-        for text in text_list:
+        for ind, text in enumerate(text_list):
             wx.SendMsg(text, who)
+            if pic_list[ind] != 'No_Pic': # 文字同时有图片
+                wx.SendFiles(pic_list[ind], who)
             sleep(2)
 
 try:
@@ -35,6 +39,6 @@ try:
         print('Fetching News ...')
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.map(fetch_and_send_news, news_name_list)
-        sleep(300)
+        sleep(10)
 except KeyboardInterrupt:
     print('Exit Fetching ...')
