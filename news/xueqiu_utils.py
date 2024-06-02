@@ -7,6 +7,18 @@ from urllib.parse import urljoin
 import os
 
 
+def is_in_directory(file_path, directory):
+    # 获取文件路径和目录的绝对路径
+    file_path = os.path.abspath(file_path)
+    directory = os.path.abspath(directory)
+    
+    # 检查文件是否存在
+    if not os.path.exists(file_path):
+        return False
+    
+    # 判断文件路径是否以目录路径开头
+    return os.path.commonpath([file_path, directory]) == directory
+
 # 定义一个函数将字符串时间转换为 datetime 对象，适用于微博数据，因为时间是 %m-%d %H:%M 格式
 def convert_time(time_str):
     # 当前时间
@@ -133,26 +145,37 @@ async def fetch_weibo_content(url, file_destination):
                         # print(f"Image URL: {img_url}")
                         pass
 
-                        # 下载图片
-                        response = await page.request.get(img_url)
-                        if response.status != 200:
-                            # print(f"Failed to download image. Status code: {response.status}")
+                        pic_id = convert_time(datetime)
+                        pic_id = pic_id.strftime("%Y%m%d%H%M%S")
+                        file_path = './news_pic/'+ file_destination.split('/')[-1].split('.')[0] + '_' + pic_id +'_image.jpg'
+
+                        # 获取文件路径和目录的绝对路径
+                        _temp_file_path = file_path
+                        _temp_directory = file_path.split('/')[0]+'/'+file_path.split('/')[1]
+                        
+                        # True的时候说明此图片已下载过，无需重复下载
+                        if is_in_directory(_temp_file_path, _temp_directory): 
                             pass
                         else:
-                            pic_id = convert_time(datetime)
-                            pic_id = pic_id.strftime("%Y%m%d%H%M%S")
-                            file_path = './news_pic/'+ url.split('/')[-1] + '_' + pic_id +'_image.jpg'
-                            with open(file_path, 'wb') as file:
-                                file.write(await response.body())
-                            
-                            # # 检查文件大小
-                            # file_size = os.path.getsize(file_path)
-                            # if file_size < 5 * 1024:  # 5KB = 5 * 1024 bytes
-                            #     os.remove(file_path)
-                            #     print(f"Image size is less than 5KB, not saving the file: {file_path}")
-                            #     file_path = 'No_Pic'
-                            # else:
-                            #     print(f"Image successfully downloaded: {file_path}")
+                            # 下载图片
+                            response = await page.request.get(img_url)
+                            if response.status != 200:
+                                # print(f"Failed to download image. Status code: {response.status}")
+                                pass
+                            else:
+                                with open(file_path, 'wb') as file:
+                                    file.write(await response.body())
+                                print(f"Image successfully downloaded: {file_path}")
+
+                                
+                                # # 检查文件大小
+                                # file_size = os.path.getsize(file_path)
+                                # if file_size < 5 * 1024:  # 5KB = 5 * 1024 bytes
+                                #     os.remove(file_path)
+                                #     print(f"Image size is less than 5KB, not saving the file: {file_path}")
+                                #     file_path = 'No_Pic'
+                                # else:
+                                #     print(f"Image successfully downloaded: {file_path}")
 
                 pic_list.append(file_path)
 

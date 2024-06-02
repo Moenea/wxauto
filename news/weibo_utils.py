@@ -6,6 +6,18 @@ import pandas as pd
 import aiohttp
 import os
 
+def is_in_directory(file_path, directory):
+    # 获取文件路径和目录的绝对路径
+    file_path = os.path.abspath(file_path)
+    directory = os.path.abspath(directory)
+    
+    # 检查文件是否存在
+    if not os.path.exists(file_path):
+        return False
+    
+    # 判断文件路径是否以目录路径开头
+    return os.path.commonpath([file_path, directory]) == directory
+
 # 定义一个函数将字符串时间转换为 datetime 对象，适用于微博数据，因为时间是 %m-%d %H:%M 格式
 def convert_time(time_str):
     # 当前时间
@@ -62,20 +74,30 @@ async def download_image(url, file_path):
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url, headers=headers) as response:
-            if response.status != 200:
-                print(f"Failed to download image. Status code: {response.status}")
+
+            # 获取文件路径和目录的绝对路径
+            _temp_file_path = file_path
+            _temp_directory = file_path.split('/')[0]+'/'+file_path.split('/')[1]
             
-            # 将图片写入临时文件
-            with open(file_path, 'wb') as file:
-                file.write(await response.read())
+            # True的时候说明此图片已下载过，无需重复下载
+            if is_in_directory(_temp_file_path, _temp_directory): 
+                pass
+            else:
+                if response.status != 200:
+                    print(f"Failed to download image. Status code: {response.status}")
+                
+                # 将图片写入临时文件
+                with open(file_path, 'wb') as file:
+                    file.write(await response.read())
             
-            # 检查文件大小
-            file_size = os.path.getsize(file_path)
-            # if file_size < 10 * 1024:  # 10KB = 10 * 1024 bytes 避免下载表情作为图片
-            #     os.remove(file_path)
-            #     print(f"Image size is less than 10KB, not saving the file: {file_path}")
-            # else:
-            #     print(f"Image successfully downloaded: {file_path}")
+                print(f"Image successfully downloaded: {file_path}")
+                # # 检查文件大小
+                # file_size = os.path.getsize(file_path)
+                # if file_size < 10 * 1024:  # 10KB = 10 * 1024 bytes 避免下载表情作为图片
+                #     os.remove(file_path)
+                #     print(f"Image size is less than 10KB, not saving the file: {file_path}")
+                # else:
+                #     print(f"Image successfully downloaded: {file_path}")
 
 
 async def fetch_weibo_content(url, file_destination):

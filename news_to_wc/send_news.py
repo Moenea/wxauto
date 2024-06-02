@@ -32,7 +32,7 @@ def fetch_and_send_news(news_name):
             wx.SendMsg(text, who)
             if pic_list[ind] != 'No_Pic': # 文字同时有图片
                 wx.SendFiles(pic_list[ind], who)
-            sleep(2)
+                sleep(1)
 
 try:
     while True:
