@@ -30,6 +30,7 @@ def update_news(news_name, resouce_name):
         text_df['Text'] = text_df['Text'].apply(json.loads)
 
         text_list = []
+        pic_list = []
         if item_num_before != item_num_after:
             for i in range(item_num_after-item_num_before-1,-1,-1):
                 time = text_df.iloc[i,1]
@@ -37,6 +38,9 @@ def update_news(news_name, resouce_name):
                 text = resouce + '\n' + time + "\n\n" + "\n\n".join(data_list)
                 # print(text)
                 text_list.append(text)
+
+                # 读取照片路径
+                pic_list.append(text_df.iloc[i,2])
 
     else:
         text_df['Time'] = pd.to_datetime(text_df['Time'], format='%Y-%m-%d %H:%M:%S')

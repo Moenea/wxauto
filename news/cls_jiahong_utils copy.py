@@ -5,34 +5,7 @@ import asyncio
 import pandas as pd
 import json
 from datetime import datetime, timedelta
-import aiohttp
-import os
 
-
-def is_in_directory(file_path, directory):
-    # 获取文件路径和目录的绝对路径
-    file_path = os.path.abspath(file_path)
-    directory = os.path.abspath(directory)
-    
-    # 检查文件是否存在
-    if not os.path.exists(file_path):
-        return False
-    
-    # 判断文件路径是否以目录路径开头
-    return os.path.commonpath([file_path, directory]) == directory
-
-async def download_image(url, file_path):
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            if response.status == 200:
-                content = await response.read()
-                # 确保文件夹存在
-                os.makedirs(os.path.dirname(file_path), exist_ok=True)
-                with open(file_path, 'wb') as f:
-                    f.write(content)
-                # print(f"Image downloaded and saved as {file_path}")
-            else:
-                print(f"Failed to download image, status code: {response.status}")
 
 # 定义一个函数将字符串时间转换为 datetime 对象，适用于财联社数据，因为时间是 %H:%M:%S 格式
 def convert_time(time_str):
@@ -76,46 +49,15 @@ async def fetch_cls_content(file_destination):
 
         time_list = []
         content_text_list = []
-        pic_list = []
         for div in divs:
             # 找到div中的所有直接子元素
             children = [child for child in div.children]
-
-            # 检测是否存在class为 m-t-15 的 div，如有则说明有图片
-            for child in children:
-                if child.name == 'div' and 'm-t-15' in child.get('class', []):
-                    # 使用 Playwright 的 query_selector 查找对应的 img 元素
-                    img_ele = child.find('img')
-                    if img_ele:
-                        # 获取图片 src 并下载
-                        img_src = img_ele.get('src')
-                        large_img_src = img_src.split('?')[0]
-
-                        pic_id = convert_time(time_list[-1]).strftime("%Y%m%d%H%M%S")
-                        file_path = './news_pic/cls_' + pic_id + '_image.png'
-
-                        if is_in_directory(file_path, file_path.split('/')[0]+'/'+file_path.split('/')[1]):
-                            pass
-                        else:
-                            await download_image(large_img_src, file_path)
-                    else:
-                        print("No img element found in div with class 'm-t-15'.")
-                    break
             
-            # 检查直接子元素的数量，抓取文本信息
+            # 检查直接子元素的数量
             if len(children) == 2 and children[0].name=='span' and children[1].name=='span':
                 time = children[0].text
                 if time != '':
                     time_list.append(time)
-                    try:
-                        _a = file_path
-                    except:
-                        file_path = None
-                    if file_path:
-                        pic_list.append(file_path)
-                        file_path = None
-                    else:
-                        pic_list.append('No_Pic')
                 
                 # 找到第二个span中的所有div元素
                 divs_in_span = children[1].find_all('div', recursive=False)
@@ -135,16 +77,12 @@ async def fetch_cls_content(file_destination):
                 if len(_temp_content_text) != 0:
                     content_text_list.append(json.dumps(_temp_content_text, ensure_ascii=False))  # 确保不转义中文字符
 
-
-
-
         content_text_list = [e.replace('展开收起','') for e in content_text_list]
 
         # 要写入的数据（存储为JSON格式）
         data = {
             'Text': content_text_list,
-            'Time': time_list,
-            'Pic': pic_list
+            'Time': time_list
         }
 
         df = pd.DataFrame(data)

@@ -167,15 +167,14 @@ async def fetch_weibo_content(url, file_destination):
                                     file.write(await response.body())
                                 print(f"Image successfully downloaded: {file_path}")
 
-                                
-                                # # 检查文件大小
-                                # file_size = os.path.getsize(file_path)
-                                # if file_size < 5 * 1024:  # 5KB = 5 * 1024 bytes
-                                #     os.remove(file_path)
-                                #     print(f"Image size is less than 5KB, not saving the file: {file_path}")
-                                #     file_path = 'No_Pic'
-                                # else:
-                                #     print(f"Image successfully downloaded: {file_path}")
+                                # 检查文件大小
+                                file_size = os.path.getsize(file_path)
+                                if file_size < 5 * 1024:  # 5KB = 5 * 1024 bytes
+                                    os.remove(file_path)
+                                    print(f"Image size is less than 5KB, not saving the file: {file_path}")
+                                    file_path = 'No_Pic'
+                                else:
+                                    print(f"Image successfully downloaded: {file_path}")
 
                 pic_list.append(file_path)
 

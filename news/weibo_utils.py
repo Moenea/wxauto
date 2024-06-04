@@ -91,13 +91,13 @@ async def download_image(url, file_path):
                     file.write(await response.read())
             
                 print(f"Image successfully downloaded: {file_path}")
-                # # 检查文件大小
-                # file_size = os.path.getsize(file_path)
-                # if file_size < 10 * 1024:  # 10KB = 10 * 1024 bytes 避免下载表情作为图片
-                #     os.remove(file_path)
-                #     print(f"Image size is less than 10KB, not saving the file: {file_path}")
-                # else:
-                #     print(f"Image successfully downloaded: {file_path}")
+                # 检查文件大小
+                file_size = os.path.getsize(file_path)
+                if file_size < 10 * 1024:  # 10KB = 10 * 1024 bytes 避免下载表情作为图片
+                    os.remove(file_path)
+                    print(f"Image size is less than 10KB, not saving the file: {file_path}")
+                else:
+                    print(f"Image successfully downloaded: {file_path}")
 
 
 async def fetch_weibo_content(url, file_destination):
